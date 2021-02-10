@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.commonCode.mapper">
+	
+	<select id="selectCommonCodeList" resultType="java.util.HashMap">
+		
+		SELECT * 
+		  FROM CODEM
+		  
+		
+	</select>
+	
+	
+	<select id="selectCodeList" resultType="java.util.Map" parameterType="java.util.List">
+		SELECT A.CODE
+		     , A.CODE_NAME
+		     , B.DECODE
+		     , B.DECODE_NAME
+		     , B.USE_YN
+			  FROM CODEM A , CODED B
+			  WHERE A.CODE = B.CODE
+			  AND A.CODE = #{code}
+			  AND B.USE_YN = #{use_yn}	  
+	</select>
+	
+	<select id="selectCodeDetail" resultType="java.util.HashMap" parameterType="String">
+		SELECT CODE
+			,  DECODE
+			,  DECODE_NAME
+			,  USE_YN
+		FROM CODED
+		WHERE CODE = #{code}
+	</select>
+	
+	<insert id="commonCodeInsert" parameterType="java.util.List">
+		<foreach collection="list" item="item" separator=" "  open="INSERT ALL " close=" SELECT * FROM DUAL">
+			INTO CODED VALUES
+            (#{item.code},#{item.decode},#{item.decodeName},#{item.useYN})
+        </foreach>
+	</insert>
+	
+	<update id="commonCodeUpdate" parameterType="java.util.List">
+		<foreach collection="list" item="item" separator=";" open="DECLARE BEGIN" close="; END;">
+        UPDATE CODED SET DECODE_NAME=#{item.decodeName},USE_YN=#{item.useYN}
+         <where>
+        DECODE=#{item.decode}
+         </where>
+    	</foreach>
+	</update>
+	
+	<delete id="commonCodeDelete" parameterType="java.util.List"> 
+	DELETE FROM CODED 
+	WHERE 
+	<foreach collection="list" item="item" separator="or" open="" close="" > 
+	DECODE=#{item.decode}
+	</foreach> 
+	</delete>
+
+
+	
+	
+	<select id="decodeCheck" resultType="int" parameterType="java.util.List">
+		SELECT COUNT(*)
+		FROM CODED
+		WHERE 
+		<foreach collection="list" item="item" separator="or">
+		DECODE=#{item.decode}
+		</foreach>
+	</select>
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

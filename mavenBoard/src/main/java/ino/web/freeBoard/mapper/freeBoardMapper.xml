@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.freeBoard.mapper.FreeBoardMapper">
+	<resultMap id="freeBoardDtoMap" type="freeBoardDto">
+		<result column="CODE_TYPE" property="codeType" />
+		<result column="NUM" property="num" />
+		<result column="NAME" property="name" />
+		<result column="CONTENT" property="content" />
+		<result column="REGDATE" property="regdate" />
+		<result column="CONTENT" property="content" />
+	</resultMap>
+
+
+	<!-- <select id="freeBoardGetList" resultMap="freeBoardDtoMap" parameterType="java.util.Map">
+		SELECT 
+		(CASE 
+			WHEN CODE_TYPE='01' THEN '자유' 
+			WHEN CODE_TYPE='02' THEN '익명' 
+			WHEN CODE_TYPE='03' THEN 'QnA'
+			ELSE 'NULL'
+			END) CODE_TYPE
+		, NUM, NAME, TITLE, CONTENT, TO_CHAR(REGDATE , 'YYYY/MM/DD') AS REGDATE FROM FREEBOARD
+		<if test="searchKey != null and searchType == title">
+		WHERE
+			TITLE LIKE '%'||#{keyWord}||'%'
+		</if>
+		<if test="searchKey != null and searchType == num" >
+		WHERE
+			NUM LIKE '%'||#{keyWord}||'%'
+		</if>
+	</select>-->
+	
+	
+	
+	<select id="freeBoardGetList" resultMap="freeBoardDtoMap" parameterType="java.util.HashMap"> 
+	
+			<!--SELECT A.*
+			FROM
+			(
+			SELECT ROW_NUMBER() OVER(ORDER BY num) AS rnum
+			     , CODE_TYPE
+			     , NUM
+			     , NAME
+			     , TITLE
+			     , CONTENT
+			     , REGDATE 
+			  FROM freeboard
+			) A
+			WHERE a.rnum between #{start} and #{end}-->
+			
+			SELECT * 
+			FROM (
+						SELECT ROW_NUMBER() OVER(ORDER BY num) AS RN,
+								CASE 
+								WHEN CODE_TYPE='01' THEN '자유' 
+								WHEN CODE_TYPE='02' THEN '익명' 
+								WHEN CODE_TYPE='03' THEN 'QnA'
+								ELSE 'NULL'
+								END CODE_TYPE
+						     , NUM
+						     , NAME
+						     , TITLE
+						     , CONTENT
+						     , TO_CHAR(REGDATE , 'YYYY/MM/DD') AS REGDATE 
+						FROM FREEBOARD WHERE 1=1
+					   <if test='searchType != "" and searchType == "DCOM001" '>
+					   		AND num = #{searchKeyword}
+					   </if>
+					   <if test='searchType != "" and searchType == "DCOM002" '>
+					   		AND title like '%' ||  #{searchKeyword} || '%'
+					   </if>
+					   <if test=' stDate != "" '>
+					   		AND TO_CHAR(REGDATE, 'YYYYMMDD') BETWEEN #{stDate} and #{enDate}
+					   </if>
+					   
+						ORDER BY NUM DESC 
+						) A
+					    WHERE RN BETWEEN #{start} AND #{end}
+					    </select>
+					    <!--'DCOM001'  -->
+	
+	<!-- SELECT
+     (CASE 
+     
+			WHEN CODE_TYPE='01' THEN '자유' 
+			WHEN CODE_TYPE='02' THEN '익명' 
+			WHEN CODE_TYPE='03' THEN 'QnA'
+			ELSE 'NULL'
+			END) CODE_TYPE, 
+   	NUM, NAME, TITLE, CONTENT, TO_CHAR(REGDATE , 'YYYY/MM/DD') AS REGDATE 
+	FROM freeboard
+	
+	order by num -->
+	
+	<select id="countBoard" resultType="int" parameterType="java.util.Map">
+		SELECT COUNT(*) FROM FREEBOARD WHERE 1=1
+		<if test="searchType != '' and searchType == 'DCOM001'">
+			AND num = #{searchKeyword}
+		</if>
+		<if test="searchType != '' and searchType == 'DCOM002'">
+			AND title like '%' ||  #{searchKeyword} || '%'
+		</if>
+		<if test=' stDate != "" '>
+			AND TO_CHAR(REGDATE, 'YYYYMMDD') BETWEEN #{stDate} and #{enDate}
+		</if>
+		
+	</select>
+	
+	
+	
+		<insert id="freeBoardInsertPro" parameterType="freeBoardDto">
+		INSERT INTO FREEBOARD(code_type,num,title,name,regdate,content)
+		VALUES(#{codeType},FREE_SEQUENCE.NEXTVAL, #{title}, #{name}, SYSDATE, #{content})
+	</insert>
+
+	<select id="freeBoardDetailByNum" resultMap="freeBoardDtoMap" parameterType="int">
+		SELECT CODE_TYPE,NUM, TITLE, NAME, TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE, CONTENT FROM FREEBOARD
+		WHERE NUM=#{num}
+	</select>
+
+	<select id="freeBoardNewNum" resultType="int">
+		SELECT MAX(NUM)
+		FROM FREEBOARD
+	</select>
+
+	<update id="freeBoardModify" parameterType="freeBoardDto">
+		UPDATE FREEBOARD
+		SET TITLE = #{title}
+				, CONTENT = #{content}
+		WHERE NUM = #{num}
+
+	</update>
+
+	<update id="freeBoardDelete" parameterType="int">
+		DELETE FROM FREEBOARD
+		WHERE NUM
+		= #{num}
+	</update>
+	
+	
+	
+
+
+</mapper>
